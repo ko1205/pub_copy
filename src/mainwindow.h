@@ -12,6 +12,7 @@
 #include <QPushButton>
 #include <QComboBox>
 #include <QListView>
+#include <QListWidget>
 #include <QTableWidget>
 
 class MainWindow : public QMainWindow
@@ -28,9 +29,10 @@ signals:
 private:
     void createMenus();
     void createCentralWidget();
+    QStringList searchShotfolder(QString project);
 
     QMenu *fileMenu;
-    QString *showPath;
+    QString showPath;
     QLineEdit *showPathEdit;
     QPushButton *selectPathButton;
     QPushButton *setShowPathButton;
@@ -40,15 +42,20 @@ private:
     QPushButton *selectTargetPathButton;
 
 
-    QListView *shotListView;
-    QTableWidget *QeueListView;
+    QListWidget *shotListView;
+    QTableWidget *queueListView;
 
     QPushButton *copyButton;
+
+    QLabel *statusMessage;
 
 private slots:
     void clickedShowPath();
     void clickedTargetPath();
     void selectDiractory(QLineEdit *edit);
+    void setShowPath();
+    void projectChange(QString project);
+    void checkShotList(QListWidgetItem *item);
 
 
 };
