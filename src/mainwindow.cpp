@@ -8,6 +8,7 @@ MainWindow::MainWindow(QWidget *parent)
 {
     createMenus();
     createCentralWidget();
+    setQueueList();
 
     statusMessage = new QLabel("Set Show forder");
 
@@ -53,21 +54,21 @@ void MainWindow::createCentralWidget()
 
     shotListView = new QListWidget();
     queueListView = new QTableWidget();
-    queueListView->setColumnCount(3);
-    queueListView->setRowCount(10);
+//    queueListView->setColumnCount(3);
+//    queueListView->setRowCount(10);
 
-    QTableWidgetItem *item0 = new QTableWidgetItem;
-    item0->setText("shot");
+//    QTableWidgetItem *item0 = new QTableWidgetItem;
+//    item0->setText("shot");
 
-    QTableWidgetItem *item1 = new QTableWidgetItem;
-    item1->setText("image");
+//    QTableWidgetItem *item1 = new QTableWidgetItem;
+//    item1->setText("image");
 
-    QTableWidgetItem *item2 = new QTableWidgetItem;
-    item2->setText("script");
+//    QTableWidgetItem *item2 = new QTableWidgetItem;
+//    item2->setText("script");
 
-    queueListView->setHorizontalHeaderItem(0,item0);
-    queueListView->setHorizontalHeaderItem(1,item1);
-    queueListView->setHorizontalHeaderItem(2,item2);
+//    queueListView->setHorizontalHeaderItem(0,item0);
+//    queueListView->setHorizontalHeaderItem(1,item1);
+//    queueListView->setHorizontalHeaderItem(2,item2);
 
     QSplitter *ViewSplitter = new QSplitter();
 
@@ -84,7 +85,7 @@ void MainWindow::createCentralWidget()
     ViewSplitter->setSizes(sizes);
 
     QHBoxLayout *targetPathLayout = new QHBoxLayout();
-    QLabel *targetPahtLabel = new QLabel("target Path");
+    QLabel *targetPahtLabel = new QLabel("Target Path");
     targetPathEdit = new QLineEdit();
     selectTargetPathButton = new QPushButton("...");
     selectTargetPathButton->setFixedWidth(30);
@@ -103,6 +104,32 @@ void MainWindow::createCentralWidget()
     centralWidget->setLayout(baselayout);
     setCentralWidget(centralWidget);
 
+
+}
+
+void MainWindow::setQueueList()
+{
+        queueListView->setColumnCount(4);
+        queueListView->setRowCount(0);
+//        queueListView->setSortingEnabled(1);
+        queueListView->sortByColumn(0,Qt::AscendingOrder);
+
+        QTableWidgetItem *item0 = new QTableWidgetItem;
+        item0->setText("shot");
+
+        QTableWidgetItem *item1 = new QTableWidgetItem;
+        item1->setText("image");
+
+        QTableWidgetItem *item2 = new QTableWidgetItem;
+        item2->setText("script");
+
+        QTableWidgetItem *item3 = new QTableWidgetItem;
+        item3->setText("Path");
+
+        queueListView->setHorizontalHeaderItem(0,item0);
+        queueListView->setHorizontalHeaderItem(1,item1);
+        queueListView->setHorizontalHeaderItem(2,item2);
+        queueListView->setHorizontalHeaderItem(3,item3);
 
 }
 
@@ -134,15 +161,15 @@ void MainWindow::setShowPath()
         selectProjectCombobox->addItem("<Select Project>");
         QDir dir = showPath;
         list = dir.entryList(QDir::Dirs|QDir::NoDotAndDotDot);
-        queueListView->setRowCount(list.size());
+//        queueListView->setRowCount(list.size());
         for(int i = 0; i < list.size();i++)
         {
-            QTableWidgetItem *item = new QTableWidgetItem();
+//            QTableWidgetItem *item = new QTableWidgetItem();
             QDir projectDir = dir.absoluteFilePath(list.at(i));
             QDir seqDir = projectDir.filePath("seq");
             if(seqDir.exists()){
-                item->setText(projectDir.absolutePath());
-                queueListView->setItem(i,0,item);
+//                item->setText(projectDir.absolutePath());
+//                queueListView->setItem(i,0,item);
                 selectProjectCombobox->addItem(list.at(i));
             }
         }
@@ -194,6 +221,11 @@ void MainWindow::projectChange(QString project)
     path = path.filePath(project);
     if(path.exists()){
         shotListView->clear();
+        int queueListRowCount = queueListView->rowCount();
+        for(int i=0;i<queueListRowCount;i++)
+        {
+            queueListView->removeRow(0);
+        }
 
         QStringList shotList = searchShotfolder(project);
         for(int i =0;i < shotList.size(); i++)
@@ -217,12 +249,94 @@ void MainWindow::checkShotList(QListWidgetItem *item)
         disconnect(shotListView,SIGNAL(itemChanged(QListWidgetItem*)),this,SLOT(checkShotList(QListWidgetItem*)));
         item->setBackgroundColor(QColor(Qt::lightGray));
         connect(shotListView,SIGNAL(itemChanged(QListWidgetItem*)),this,SLOT(checkShotList(QListWidgetItem*)));
-        QMessageBox::information(this,"check",name,QMessageBox::Yes);
+        insertQueue(item);
+//        QMessageBox::information(this,"check",name,QMessageBox::Yes);
+//        QAbstractItemModel *model = queueListView->model();
+//        queueListView->sortByColumn(0,Qt::AscendingOrder);
+//        model->removeRow(3);
+//        queueListView->findItems()
+//        queueListView->row();
+
     }else{
         disconnect(shotListView,SIGNAL(itemChanged(QListWidgetItem*)),this,SLOT(checkShotList(QListWidgetItem*)));
         item->setBackgroundColor(QColor(Qt::white));
         connect(shotListView,SIGNAL(itemChanged(QListWidgetItem*)),this,SLOT(checkShotList(QListWidgetItem*)));
-        QMessageBox::information(this,"uncheck",name,QMessageBox::Yes);
+        removeQueue(item);
+//        QMessageBox::information(this,"uncheck",name,QMessageBox::Yes);
     }
+
+}
+
+void MainWindow::insertQueue(QListWidgetItem *item)
+{
+    QString shot = item->data(Qt::DisplayRole).toString();
+    QString path = item->data(Qt::UserRole+1).toString();
+    QDir pathDir = path;
+    QDir imagePathDir = pathDir.filePath("render/pub/images");
+    QDir scriptPathDir = pathDir.filePath("render/pub/script");
+
+    QStringList imagesList = imagePathDir.entryList(QDir::Dirs|QDir::NoDotAndDotDot);
+    imagesList.removeOne("_tmp");
+    imagesList.removeOne(".vrayThumbs");
+//    if(1 < imagesList.count())
+//    {
+//        for(int i=0;i<imagesList.count(); i++)
+//        {
+//            QMessageBox::information(this,"",imagesList.at(i),QMessageBox::Yes);
+//        }
+//    }
+
+    QStringList nukeFilter;
+    nukeFilter<< "*.nk";
+    QStringList scriptList = scriptPathDir.entryList(nukeFilter,QDir::Files);
+//    if(1 < scriptList.count())
+//    {
+//        for(int i=0;i<scriptList.count(); i++)
+//        {
+//            QMessageBox::information(this,"",scriptList.at(i),QMessageBox::Yes);
+//        }
+//    }
+
+    QMessageBox::information(this,"",pathDir.absolutePath(),QMessageBox::Yes);
+    if( 1 == imagesList.count() && 1 == scriptList.count())
+    {
+        QTableWidgetItem *shotNameItem = new QTableWidgetItem();
+        QTableWidgetItem *pathItem = new QTableWidgetItem();
+        QTableWidgetItem *scriptItem = new QTableWidgetItem();
+        QTableWidgetItem *imagesItem = new QTableWidgetItem();
+        shotNameItem->setText(shot);
+        pathItem->setText(path);
+        scriptItem->setText(scriptList.constFirst());
+        imagesItem->setText(imagesList.constFirst());
+        queueListView->setRowCount(queueListView->rowCount()+1);
+
+        queueListView->setItem(queueListView->rowCount()-1,0,shotNameItem);
+        queueListView->setItem(queueListView->rowCount()-1,1,imagesItem);
+        queueListView->setItem(queueListView->rowCount()-1,2,scriptItem);
+        queueListView->setItem(queueListView->rowCount()-1,3,pathItem);
+        queueListView->sortByColumn(0,Qt::AscendingOrder);
+    }else{
+
+    }
+}
+
+void MainWindow::removeQueue(QListWidgetItem *item)
+{
+    QString shot = item->data(Qt::DisplayRole).toString();
+    QList<QTableWidgetItem *> queueItmes = queueListView->findItems(shot,Qt::MatchExactly);
+    int row = queueListView->row(queueItmes.constFirst());
+    queueListView->model()->removeRow(row);
+
+
+}
+
+SelectMultiDialog::SelectMultiDialog(QWidget *parent)
+    :QDialog(parent)
+{
+
+}
+
+SelectMultiDialog::~SelectMultiDialog()
+{
 
 }

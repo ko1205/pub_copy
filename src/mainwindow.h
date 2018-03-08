@@ -14,6 +14,8 @@
 #include <QListView>
 #include <QListWidget>
 #include <QTableWidget>
+#include <QAbstractItemModel>
+#include <QDialog>
 
 class MainWindow : public QMainWindow
 {
@@ -29,6 +31,10 @@ signals:
 private:
     void createMenus();
     void createCentralWidget();
+    void setQueueList();
+    void insertQueue(QListWidgetItem *item);
+    void removeQueue(QListWidgetItem *item);
+
     QStringList searchShotfolder(QString project);
 
     QMenu *fileMenu;
@@ -57,6 +63,17 @@ private slots:
     void projectChange(QString project);
     void checkShotList(QListWidgetItem *item);
 
+
+};
+
+class SelectMultiDialog : public QDialog
+{
+    Q_OBJECT
+public:
+    SelectMultiDialog(QWidget *parent=0);
+    ~SelectMultiDialog();
+
+private:
 
 };
 
