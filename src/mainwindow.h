@@ -34,6 +34,7 @@ private:
     void setQueueList();
     void insertQueue(QListWidgetItem *item);
     void removeQueue(QListWidgetItem *item);
+    int queueFileCount();
 
     QStringList searchShotfolder(QString project);
 
@@ -62,6 +63,7 @@ private slots:
     void setShowPath();
     void projectChange(QString project);
     void checkShotList(QListWidgetItem *item);
+    void startCopy();
 
 
 };
@@ -72,8 +74,16 @@ class SelectMultiDialog : public QDialog
 public:
     SelectMultiDialog(QWidget *parent=0);
     ~SelectMultiDialog();
+    void setDialog(QStringList images,QStringList scripts,QTableWidget *queueList);
 
 private:
+    QListWidget *imageList;
+    QListWidget *scriptList;
+    QPushButton *selectButton;
+    QTableWidget *queueTable;
+
+private slots:
+    void selectSetQueue();
 
 };
 
