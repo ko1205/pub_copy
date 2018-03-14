@@ -76,6 +76,7 @@ void MainWindow::createCentralWidget()
     typeCombobox = new QComboBox();
     typeCombobox->addItem("Render");
     typeCombobox->addItem("FX");
+//    typeCombobox->
 
     shotListView = new QListWidget();
     queueListView = new QTableWidget();
