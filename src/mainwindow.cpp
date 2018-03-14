@@ -1,7 +1,8 @@
 #include "mainwindow.h"
 #include <QFileDialog>
-#include <QProgressBar>
 #include <QMessageBox>
+#include <QCloseEvent>
+#include <QHeaderView>
 #include "common.h"
 
 MainWindow::MainWindow(QWidget *parent)
@@ -10,12 +11,13 @@ MainWindow::MainWindow(QWidget *parent)
     createMenus();
     createCentralWidget();
     setQueueList();
+    resize(800,500);
 
     statusMessage = new QLabel("Set Show forder");
 
-    QProgressBar *progressBar = new QProgressBar();
-    progressBar->setRange(0,100);
-    progressBar->setValue(50);
+    progressBar = new QProgressBar();
+//    progressBar->setRange(0,300);
+//    progressBar->setValue(50);
     statusBar()->addWidget(statusMessage);
     statusBar()->addWidget(progressBar);
     connect(selectPathButton,SIGNAL(clicked(bool)),this,SLOT(clickedShowPath()));
@@ -43,6 +45,12 @@ MainWindow::~MainWindow()
 
 }
 
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+    setting->setValue("path",showPath);
+    event->accept();
+}
+
 void MainWindow::createMenus()
 {
     fileMenu = menuBar()->addMenu(tr("&File"));
@@ -65,8 +73,20 @@ void MainWindow::createCentralWidget()
     selectProjectCombobox->setCurrentText("test");
     QHBoxLayout *topLineLayout = new QHBoxLayout();
 
+    typeCombobox = new QComboBox();
+    typeCombobox->addItem("Render");
+    typeCombobox->addItem("FX");
+
     shotListView = new QListWidget();
     queueListView = new QTableWidget();
+
+    QVBoxLayout *LeftLayout = new QVBoxLayout();
+    LeftLayout->addWidget(typeCombobox);
+    LeftLayout->addWidget(shotListView);
+    QWidget *LeftWidget = new QWidget();
+    LeftWidget->setLayout(LeftLayout);
+    LeftLayout->setMargin(0);
+
 //    queueListView->setColumnCount(3);
 //    queueListView->setRowCount(10);
 
@@ -91,10 +111,10 @@ void MainWindow::createCentralWidget()
     topLineLayout->addWidget(setShowPathButton);
     topLineLayout->addWidget(selectProjectCombobox);
 
-    ViewSplitter->addWidget(shotListView);
+    ViewSplitter->addWidget(LeftWidget);
     ViewSplitter->addWidget(queueListView);
     QList<int> sizes;
-    sizes << 150 << 500;
+    sizes << 150 << 800;
     ViewSplitter->setSizes(sizes);
 
     QHBoxLayout *targetPathLayout = new QHBoxLayout();
@@ -117,32 +137,45 @@ void MainWindow::createCentralWidget()
     centralWidget->setLayout(baselayout);
     setCentralWidget(centralWidget);
 
+    setting = new QSettings("Pub_copy.ini",QSettings::IniFormat);
+    showPathEdit->setText(setting->value("path").toString());
+    showPath = setting->value("path").toString();
+    setWindowTitle("Pub Copy v0.1a");
+
 
 }
 
 void MainWindow::setQueueList()
 {
-        queueListView->setColumnCount(4);
-        queueListView->setRowCount(0);
+    QStringList tableLabels;
+    tableLabels << "shot" << "images" << "script" << "path";
+    queueListView->setColumnCount(tableLabels.size());
+    queueListView->setHorizontalHeaderLabels(tableLabels);
+//    queueListView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    queueListView->horizontalHeader()->setStretchLastSection(true);
+    queueListView->setColumnWidth(0,80);
+    queueListView->setColumnWidth(1,180);
+    queueListView->setColumnWidth(2,180);
+//        queueListView->setRowCount(0);
 //        queueListView->setSortingEnabled(1);
-        queueListView->sortByColumn(0,Qt::AscendingOrder);
+//        queueListView->sortByColumn(0,Qt::AscendingOrder);
 
-        QTableWidgetItem *item0 = new QTableWidgetItem;
-        item0->setText("shot");
+//        QTableWidgetItem *item0 = new QTableWidgetItem;
+//        item0->setText("shot");
 
-        QTableWidgetItem *item1 = new QTableWidgetItem;
-        item1->setText("image");
+//        QTableWidgetItem *item1 = new QTableWidgetItem;
+//        item1->setText("image");
 
-        QTableWidgetItem *item2 = new QTableWidgetItem;
-        item2->setText("script");
+//        QTableWidgetItem *item2 = new QTableWidgetItem;
+//        item2->setText("script");
 
-        QTableWidgetItem *item3 = new QTableWidgetItem;
-        item3->setText("Path");
+//        QTableWidgetItem *item3 = new QTableWidgetItem;
+//        item3->setText("Path");
 
-        queueListView->setHorizontalHeaderItem(0,item0);
-        queueListView->setHorizontalHeaderItem(1,item1);
-        queueListView->setHorizontalHeaderItem(2,item2);
-        queueListView->setHorizontalHeaderItem(3,item3);
+//        queueListView->setHorizontalHeaderItem(0,item0);
+//        queueListView->setHorizontalHeaderItem(1,item1);
+//        queueListView->setHorizontalHeaderItem(2,item2);
+//        queueListView->setHorizontalHeaderItem(3,item3);
 
 }
 
@@ -217,7 +250,7 @@ QStringList MainWindow::searchShotfolder(QString project)
         for(int n = 0; n < shotDirList.size(); n++)
         {
             QDir shotDir = seqDir.filePath(shotDirList.at(n));
-            QDir renderDir = shotDir.filePath("render");
+            QDir renderDir = shotDir.filePath(typeCombobox->currentText());
             if(renderDir.exists())
             {
                shotList.append(shotDir.absolutePath());
@@ -293,10 +326,58 @@ void MainWindow::startCopy()
             QMessageBox::warning(this,"Warning","Empty QueueList",QMessageBox::Yes);
         }else{
             int fileCount = queueFileCount();
-            QString fileCountString;
-//            QMessageBox::information(this,"",fileCountString.setNum(100),QMessageBox::Yes);
+//            QString fileCountString;
+//            QMessageBox::information(this,"",fileCountString.setNum(fileCount),QMessageBox::Yes);
+            progressBar->setRange(0,fileCount);
+            progressBar->setValue(0);
+            fileCopy(&targetPathDir);
+            QMessageBox::information(this,"Finish","Copy Finish",QMessageBox::Yes);
         }
     }
+}
+
+void MainWindow::fileCopy(QDir *targetDir)
+{
+    targetDir->mkdir("seq");
+    targetDir->cd("seq");
+    for(int i =0;i<queueListView->rowCount();i++)
+    {
+        QTableWidgetItem *pathItem =  queueListView->item(i,3);
+        QTableWidgetItem *imagesItem =  queueListView->item(i,1);
+
+        QString path = pathItem->data(Qt::DisplayRole).toString();
+        QStringList pathSplit= path.split("/");
+
+        QString fullTargetPath = targetDir->absolutePath()+"/"+pathSplit[pathSplit.size()-2]+"/"+pathSplit[pathSplit.size()-1]+"/comp/dev/src/3D";
+        targetDir->mkpath(fullTargetPath);
+        QDir fullTargetDir(fullTargetPath);
+
+        QDir pathDir = path;
+        QDir imagesDir = pathDir.filePath("render/pub/images");
+        imagesDir = imagesDir.filePath(imagesItem->data(Qt::DisplayRole).toString());
+        fullTargetDir.mkdir("images");
+        fullTargetDir.mkdir("script");
+        fullTargetDir.cd("images");
+        subCopy(imagesDir.absolutePath(),fullTargetDir.absolutePath(),progressBar);
+
+        QTableWidgetItem *scriptsItem = queueListView->item(i,2);
+        QDir scriptsPathDir = pathDir.filePath("render/pub/script");
+        QDir scriptsFileDir = scriptsPathDir.filePath(scriptsItem->data(Qt::DisplayRole).toString());
+        QFileInfo scriptFile(scriptsFileDir.absolutePath());
+        fullTargetDir.cd("../script");
+        subCopy(scriptFile.absoluteFilePath(),fullTargetDir.absolutePath(),progressBar);
+
+        QString movFileName = scriptFile.baseName();
+        movFileName = movFileName + ".mov";
+        QDir movFileDir = scriptsFileDir = scriptsPathDir.filePath(movFileName);
+        QFileInfo movFile(movFileDir.absolutePath());
+        if(movFile.exists())
+        {
+            subCopy(movFile.absoluteFilePath(),fullTargetDir.absolutePath(),progressBar);
+        }
+    }
+
+
 }
 
 void MainWindow::insertQueue(QListWidgetItem *item)
@@ -369,25 +450,39 @@ void MainWindow::removeQueue(QListWidgetItem *item)
 
 int MainWindow::queueFileCount()
 {
-    int fileCount = 100;
+    int fileCount = 0;
     for(int i =0;i<queueListView->rowCount();i++)
     {
         QTableWidgetItem *pathItem =  queueListView->item(i,3);
+
         QTableWidgetItem *imagesItem =  queueListView->item(i,1);
         QDir pathDir = pathItem->data(Qt::DisplayRole).toString();
         QDir imagesDir = pathDir.filePath("render/pub/images");
         imagesDir = imagesDir.filePath(imagesItem->data(Qt::DisplayRole).toString());
 
         if(imagesDir.exists()){
-            QMessageBox::information(this,"",imagesDir.absolutePath(),QMessageBox::Yes);
-            QStringList imagesFileList = imagesDir.entryList(QDir::Dirs|QDir::Files|QDir::NoDotAndDotDot);
-            fileCount = imagesFileList.size();
-            QString fileCountString;
+//            QMessageBox::information(this,"",imagesDir.absolutePath(),QMessageBox::Yes);
+//            QString fileCountString;
+            fileCount += entryFileCount(imagesDir.absolutePath());
 //            QMessageBox::information(this,"",fileCountString.setNum(fileCount),QMessageBox::Yes);
-            for(int m =0; m < imagesFileList.size();m++)
-            {
-                QMessageBox::information(this,"",fileCountString.setNum(fileCount),QMessageBox::Yes);
-            }
+
+        }
+        QTableWidgetItem *scriptsItem = queueListView->item(i,2);
+        QDir scriptsPathDir = pathDir.filePath("render/pub/script");
+        QDir scriptsFileDir = scriptsPathDir.filePath(scriptsItem->data(Qt::DisplayRole).toString());
+        QFileInfo scriptFile(scriptsFileDir.absolutePath());
+        if(scriptFile.exists())
+        {
+            fileCount++;
+        }
+        QString movFileName = scriptFile.baseName();
+        movFileName = movFileName + ".mov";
+        QDir movFileDir = scriptsFileDir = scriptsPathDir.filePath(movFileName);
+        QFileInfo movFile(movFileDir.absolutePath());
+        if(movFile.exists())
+        {
+            fileCount++;
+//            QMessageBox::information(this,"",movFileDir.absolutePath(),QMessageBox::Yes);
         }
 
     }

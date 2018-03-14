@@ -16,6 +16,9 @@
 #include <QTableWidget>
 #include <QAbstractItemModel>
 #include <QDialog>
+#include <QProgressBar>
+#include <QDir>
+#include <QSettings>
 
 class MainWindow : public QMainWindow
 {
@@ -24,6 +27,8 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = 0);
     ~MainWindow();
+    void closeEvent(QCloseEvent *event);
+
 signals:
     void folderSelected(QLineEdit *edit);
 
@@ -35,6 +40,7 @@ private:
     void insertQueue(QListWidgetItem *item);
     void removeQueue(QListWidgetItem *item);
     int queueFileCount();
+    void fileCopy(QDir *targetDir);
 
     QStringList searchShotfolder(QString project);
 
@@ -48,13 +54,15 @@ private:
     QLineEdit *targetPathEdit;
     QPushButton *selectTargetPathButton;
 
-
+    QComboBox *typeCombobox;
     QListWidget *shotListView;
     QTableWidget *queueListView;
 
     QPushButton *copyButton;
 
     QLabel *statusMessage;
+    QProgressBar *progressBar;
+    QSettings *setting;
 
 private slots:
     void clickedShowPath();

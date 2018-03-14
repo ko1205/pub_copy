@@ -1,13 +1,14 @@
 #include "common.h"
 #include <QMessageBox>
 
-void subCopy(const QString &src, const QString &destPath)
+void subCopy(const QString &src, const QString &destPath, QProgressBar *progressBar)
 {
     QFileInfo fileInfo(src);
     QDir destPathDIr(destPath);
     if(fileInfo.isFile()){
         QFile file(fileInfo.filePath());
         file.copy(destPathDIr.filePath(fileInfo.fileName()));
+        progressBar->setValue(progressBar->value()+1);
     }else if(fileInfo.isDir()){
         QDir srcDir(src);
         destPathDIr.mkdir(srcDir.dirName());
@@ -18,7 +19,7 @@ void subCopy(const QString &src, const QString &destPath)
             QString newSrcPath;
             newDestPath = destPathDIr.filePath(srcDir.dirName());
             newSrcPath = fileList.at(i).absoluteFilePath();
-            subCopy(newSrcPath,newDestPath);
+            subCopy(newSrcPath,newDestPath,progressBar);
         }
     }
 }
