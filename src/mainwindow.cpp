@@ -16,10 +16,14 @@ MainWindow::MainWindow(QWidget *parent)
     statusMessage = new QLabel("Set Show forder");
 
     progressBar = new QProgressBar();
+    progressBar->setAlignment(Qt::AlignCenter);
+    QPushButton *cancelButton =new QPushButton("Cancel");
+    cancelButton->setEnabled(false);
 //    progressBar->setRange(0,300);
 //    progressBar->setValue(50);
     statusBar()->addWidget(statusMessage);
     statusBar()->addWidget(progressBar);
+    statusBar()->addWidget(cancelButton);
     connect(selectPathButton,SIGNAL(clicked(bool)),this,SLOT(clickedShowPath()));
     connect(selectTargetPathButton,SIGNAL(clicked(bool)),this,SLOT(clickedTargetPath()));
     connect(this,SIGNAL(folderSelected(QLineEdit*)),SLOT(selectDiractory(QLineEdit*)));
@@ -76,7 +80,7 @@ void MainWindow::createCentralWidget()
     typeCombobox = new QComboBox();
     typeCombobox->addItem("Render");
     typeCombobox->addItem("FX");
-//    typeCombobox->
+    typeCombobox->setEnabled(false);
 
     shotListView = new QListWidget();
     queueListView = new QTableWidget();
@@ -119,11 +123,21 @@ void MainWindow::createCentralWidget()
     ViewSplitter->setSizes(sizes);
 
     QHBoxLayout *targetPathLayout = new QHBoxLayout();
+    QGroupBox *selectCopyGroup = new QGroupBox("Select Copy");
+    selectCopyGroup->setEnabled(false);
+    QVBoxLayout *selectCopyLayout = new QVBoxLayout();
+    QRadioButton *allCopyButton = new QRadioButton("All Copy");
+    QRadioButton *imageCopyButton = new QRadioButton("Images Copy");
+    selectCopyLayout->addWidget(allCopyButton);
+    selectCopyLayout->addWidget(imageCopyButton);
+    selectCopyGroup->setLayout(selectCopyLayout);
+
     QLabel *targetPahtLabel = new QLabel("Target Path");
     targetPathEdit = new QLineEdit();
     selectTargetPathButton = new QPushButton("...");
     selectTargetPathButton->setFixedWidth(30);
 
+    targetPathLayout->addWidget(selectCopyGroup);
     targetPathLayout->addWidget(targetPahtLabel);
     targetPathLayout->addWidget(targetPathEdit);
     targetPathLayout->addWidget(selectTargetPathButton);
@@ -352,6 +366,7 @@ void MainWindow::fileCopy(QDir *targetDir)
         QString fullTargetPath = targetDir->absolutePath()+"/"+pathSplit[pathSplit.size()-2]+"/"+pathSplit[pathSplit.size()-1]+"/comp/dev/src/3D";
         targetDir->mkpath(fullTargetPath);
         QDir fullTargetDir(fullTargetPath);
+        fullTargetDir.mkdir("../../wip");
 
         QDir pathDir = path;
         QDir imagesDir = pathDir.filePath("render/pub/images");

@@ -19,6 +19,8 @@
 #include <QProgressBar>
 #include <QDir>
 #include <QSettings>
+#include <QRadioButton>
+#include <QGroupBox>
 
 class MainWindow : public QMainWindow
 {
