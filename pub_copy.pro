@@ -26,8 +26,10 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
         src/main.cpp \
         src/mainwindow.cpp \
-    src/common.cpp
+    src/common.cpp \
+    src/copythread.cpp
 
 HEADERS += \
         src/mainwindow.h \
-    src/common.h
+    src/common.h \
+    src/copythread.h

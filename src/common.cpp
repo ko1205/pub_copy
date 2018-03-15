@@ -1,28 +1,28 @@
 #include "common.h"
 #include <QMessageBox>
 
-void subCopy(const QString &src, const QString &destPath, QProgressBar *progressBar)
-{
-    QFileInfo fileInfo(src);
-    QDir destPathDIr(destPath);
-    if(fileInfo.isFile()){
-        QFile file(fileInfo.filePath());
-        file.copy(destPathDIr.filePath(fileInfo.fileName()));
-        progressBar->setValue(progressBar->value()+1);
-    }else if(fileInfo.isDir()){
-        QDir srcDir(src);
-        destPathDIr.mkdir(srcDir.dirName());
-        QFileInfoList fileList = srcDir.entryInfoList(QDir::Files|QDir::Dirs|QDir::NoDotAndDotDot);
-        for(int i = 0; i < fileList.size();i++)
-        {
-            QString newDestPath;
-            QString newSrcPath;
-            newDestPath = destPathDIr.filePath(srcDir.dirName());
-            newSrcPath = fileList.at(i).absoluteFilePath();
-            subCopy(newSrcPath,newDestPath,progressBar);
-        }
-    }
-}
+//void subCopy(const QString &src, const QString &destPath, QProgressBar *progressBar)
+//{
+//    QFileInfo fileInfo(src);
+//    QDir destPathDIr(destPath);
+//    if(fileInfo.isFile()){
+//        QFile file(fileInfo.filePath());
+////        file.copy(destPathDIr.filePath(fileInfo.fileName()));
+////        progressBar->setValue(progressBar->value()+1);
+//    }else if(fileInfo.isDir()){
+//        QDir srcDir(src);
+//        destPathDIr.mkdir(srcDir.dirName());
+//        QFileInfoList fileList = srcDir.entryInfoList(QDir::Files|QDir::Dirs|QDir::NoDotAndDotDot);
+//        for(int i = 0; i < fileList.size();i++)
+//        {
+//            QString newDestPath;
+//            QString newSrcPath;
+//            newDestPath = destPathDIr.filePath(srcDir.dirName());
+//            newSrcPath = fileList.at(i).absoluteFilePath();
+//            subCopy(newSrcPath,newDestPath,progressBar);
+//        }
+//    }
+//}
 
 int entryFileCount(const QString &srcPath)
 {

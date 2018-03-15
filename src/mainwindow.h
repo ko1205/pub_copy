@@ -11,7 +11,7 @@
 #include <QLineEdit>
 #include <QPushButton>
 #include <QComboBox>
-#include <QListView>
+//#include <QListView>
 #include <QListWidget>
 #include <QTableWidget>
 #include <QAbstractItemModel>
@@ -21,6 +21,7 @@
 #include <QSettings>
 #include <QRadioButton>
 #include <QGroupBox>
+#include "copythread.h"
 
 
 class MainWindow : public QMainWindow
@@ -66,9 +67,15 @@ private:
     QLabel *statusMessage;
     QProgressBar *progressBar;
     QSettings *setting;
+
+    QGroupBox *selectCopyGroup;
     QRadioButton *allCopyButton;
     QRadioButton *imageCopyButton;
+    QPushButton *cancelButton;
     bool allCopy;
+    bool m_isCancel;
+
+    CopyThread *copyThread;
 
 private slots:
     void clickedShowPath();
@@ -80,8 +87,9 @@ private slots:
     void startCopy();
     void toggledAllCopy(bool on);
     void toggledImageCopy(bool on);
-
-
+    void copyedCount(int copyCount);
+    void finishCopy();
+    void isCancel(bool on);
 };
 
 class SelectMultiDialog : public QDialog

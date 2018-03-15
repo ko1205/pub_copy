@@ -5,6 +5,7 @@
 #include <QHeaderView>
 #include "common.h"
 
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
@@ -17,8 +18,8 @@ MainWindow::MainWindow(QWidget *parent)
 
     progressBar = new QProgressBar();
     progressBar->setAlignment(Qt::AlignCenter);
-    QPushButton *cancelButton =new QPushButton("Cancel");
-    cancelButton->setEnabled(false);
+    cancelButton =new QPushButton("Cancel");
+//    cancelButton->setEnabled(false);
 //    progressBar->setRange(0,300);
 //    progressBar->setValue(50);
     statusBar()->addWidget(statusMessage);
@@ -125,7 +126,7 @@ void MainWindow::createCentralWidget()
     ViewSplitter->setSizes(sizes);
 
     QHBoxLayout *targetPathLayout = new QHBoxLayout();
-    QGroupBox *selectCopyGroup = new QGroupBox("Select Copy");
+    selectCopyGroup = new QGroupBox("Select Copy");
 
 //    selectCopyGroup->setEnabled(false);
 
@@ -165,7 +166,7 @@ void MainWindow::createCentralWidget()
     showPathEdit->setText(setting->value("path").toString());
     showPath = setting->value("path").toString();
     typeCombobox->setCurrentText(setting->value("type").toString());
-    setWindowTitle("Pub Copy v0.1a");
+    setWindowTitle("Pub Copy v1.0 Bata");
 
 
 }
@@ -356,13 +357,33 @@ void MainWindow::startCopy()
         }else if(queueListView->rowCount()==0){
             QMessageBox::warning(this,"Warning","Empty QueueList",QMessageBox::Yes);
         }else{
-            int fileCount = queueFileCount();
+            copyThread = new CopyThread(this);
+            connect(copyThread,SIGNAL(copyCount(int)),this,SLOT(copyedCount(int)));
+            connect(copyThread,SIGNAL(finished()),this,SLOT(finishCopy()));
+            connect(cancelButton,SIGNAL(clicked(bool)),copyThread,SLOT(cancel()));
+            connect(copyThread,SIGNAL(copyfinish(bool)),this,SLOT(isCancel(bool)));
+            copyThread->setThread(queueListView,progressBar,allCopy,typeCombobox,targetPathDir);
+            copyThread->start();
+
+            m_isCancel = false;
+            copyButton->setEnabled(false);
+            selectCopyGroup->setEnabled(false);
+            targetPathEdit->setEnabled(false);
+            shotListView->setEnabled(false);
+            queueListView->setEnabled(false);
+            selectPathButton->setEnabled(false);
+            selectTargetPathButton->setEnabled(false);
+            setShowPathButton->setEnabled(false);
+            typeCombobox->setEnabled(false);
+            selectProjectCombobox->setEnabled(false);
+
+//            int fileCount = queueFileCount();
 //            QString fileCountString;
 //            QMessageBox::information(this,"",fileCountString.setNum(fileCount),QMessageBox::Yes);
-            progressBar->setRange(0,fileCount);
-            progressBar->setValue(0);
-            fileCopy(&targetPathDir);
-            QMessageBox::information(this,"Finish","Copy Finish",QMessageBox::Yes);
+//            progressBar->setRange(0,fileCount);
+//            progressBar->setValue(0);
+//            fileCopy(&targetPathDir);
+//            QMessageBox::information(this,"Finish","Copy Finish",QMessageBox::Yes);
         }
     }
 }
@@ -408,7 +429,7 @@ void MainWindow::fileCopy(QDir *targetDir)
         fullTargetDir.cd("images");
         if(imagesDir.exists()){
 
-            subCopy(imagesDir.absolutePath(),fullTargetDir.absolutePath(),progressBar);
+//            subCopy(imagesDir.absolutePath(),fullTargetDir.absolutePath(),progressBar);
         }
 
 
@@ -419,7 +440,7 @@ void MainWindow::fileCopy(QDir *targetDir)
             QFileInfo scriptFile(scriptsFileDir.absolutePath());
             fullTargetDir.cd("../script");
             if(scriptFile.exists()){
-                subCopy(scriptFile.absoluteFilePath(),fullTargetDir.absolutePath(),progressBar);
+//                subCopy(scriptFile.absoluteFilePath(),fullTargetDir.absolutePath(),progressBar);
 
                 QString movFileName = scriptFile.baseName();
                 movFileName = movFileName + ".mov";
@@ -427,7 +448,7 @@ void MainWindow::fileCopy(QDir *targetDir)
                 QFileInfo movFile(movFileDir.absolutePath());
                 if(movFile.exists())
                 {
-                    subCopy(movFile.absoluteFilePath(),fullTargetDir.absolutePath(),progressBar);
+//                    subCopy(movFile.absoluteFilePath(),fullTargetDir.absolutePath(),progressBar);
                 }
             }
         }
@@ -594,6 +615,41 @@ void MainWindow::toggledImageCopy(bool on)
 //        QMessageBox::information(this,"","toggled image Copy",QMessageBox::Yes);
     }
 
+}
+
+void MainWindow::copyedCount(int copyCount)
+{
+    progressBar->setValue(copyCount);
+}
+
+void MainWindow::isCancel(bool on)
+{
+    m_isCancel = on;
+}
+
+void MainWindow::finishCopy()
+{
+//    disconnect(copyThread,SIGNAL(copyCount(int)),this,SLOT(copyedCount(int)));
+//    disconnect(copyThread,SIGNAL(finished()),this,SLOT(finishCopy()));
+//    disconnect(cancelButton,SIGNAL(clicked(bool)),copyThread,SLOT(cancel()));
+//    disconnect(copyThread,SIGNAL(copyfinish(bool)),this,SLOT(isCancel(bool)));
+
+    copyButton->setEnabled(true);
+    selectCopyGroup->setEnabled(true);
+    targetPathEdit->setEnabled(true);
+    shotListView->setEnabled(true);
+    queueListView->setEnabled(true);
+    selectPathButton->setEnabled(true);
+    selectTargetPathButton->setEnabled(true);
+    setShowPathButton->setEnabled(true);
+    typeCombobox->setEnabled(true);
+    selectProjectCombobox->setEnabled(true);
+
+    if(m_isCancel){
+        QMessageBox::information(this,"Cancel","Copy Cancel",QMessageBox::Yes);
+    }else{
+        QMessageBox::information(this,"Finish","Copy Finish",QMessageBox::Yes);
+    }
 }
 
 SelectMultiDialog::SelectMultiDialog(QWidget *parent)
