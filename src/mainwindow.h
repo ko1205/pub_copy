@@ -22,6 +22,7 @@
 #include <QRadioButton>
 #include <QGroupBox>
 
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -39,7 +40,7 @@ private:
     void createMenus();
     void createCentralWidget();
     void setQueueList();
-    void insertQueue(QListWidgetItem *item);
+    bool insertQueue(QListWidgetItem *item);
     void removeQueue(QListWidgetItem *item);
     int queueFileCount();
     void fileCopy(QDir *targetDir);
@@ -65,6 +66,9 @@ private:
     QLabel *statusMessage;
     QProgressBar *progressBar;
     QSettings *setting;
+    QRadioButton *allCopyButton;
+    QRadioButton *imageCopyButton;
+    bool allCopy;
 
 private slots:
     void clickedShowPath();
@@ -74,6 +78,8 @@ private slots:
     void projectChange();
     void checkShotList(QListWidgetItem *item);
     void startCopy();
+    void toggledAllCopy(bool on);
+    void toggledImageCopy(bool on);
 
 
 };
