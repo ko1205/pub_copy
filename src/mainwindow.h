@@ -71,7 +71,7 @@ private slots:
     void clickedTargetPath();
     void selectDiractory(QLineEdit *edit);
     void setShowPath();
-    void projectChange(QString project);
+    void projectChange();
     void checkShotList(QListWidgetItem *item);
     void startCopy();
 

@@ -28,7 +28,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(selectTargetPathButton,SIGNAL(clicked(bool)),this,SLOT(clickedTargetPath()));
     connect(this,SIGNAL(folderSelected(QLineEdit*)),SLOT(selectDiractory(QLineEdit*)));
     connect(setShowPathButton,SIGNAL(clicked(bool)),this,SLOT(setShowPath()));
-    connect(selectProjectCombobox,SIGNAL(currentTextChanged(QString)),this,SLOT(projectChange(QString)));
+    connect(selectProjectCombobox,SIGNAL(currentTextChanged(QString)),this,SLOT(projectChange()));
+    connect(typeCombobox,SIGNAL(currentTextChanged(QString)),this,SLOT(projectChange()));
     connect(shotListView,SIGNAL(itemChanged(QListWidgetItem*)),this,SLOT(checkShotList(QListWidgetItem*)));
     connect(copyButton,SIGNAL(clicked(bool)),this,SLOT(startCopy()));
 
@@ -52,6 +53,7 @@ MainWindow::~MainWindow()
 void MainWindow::closeEvent(QCloseEvent *event)
 {
     setting->setValue("path",showPath);
+    setting->setValue("type",typeCombobox->currentText());
     event->accept();
 }
 
@@ -73,14 +75,14 @@ void MainWindow::createCentralWidget()
     setShowPathButton = new QPushButton("Set");
     selectProjectCombobox = new QComboBox();
     selectProjectCombobox->addItem("<Select Project>");
-    selectProjectCombobox->addItem("test");
-    selectProjectCombobox->setCurrentText("test");
+//    selectProjectCombobox->addItem("test");
+//    selectProjectCombobox->setCurrentText("test");
     QHBoxLayout *topLineLayout = new QHBoxLayout();
 
     typeCombobox = new QComboBox();
     typeCombobox->addItem("Render");
     typeCombobox->addItem("FX");
-    typeCombobox->setEnabled(false);
+//    typeCombobox->setEnabled(false);
 
     shotListView = new QListWidget();
     queueListView = new QTableWidget();
@@ -155,6 +157,7 @@ void MainWindow::createCentralWidget()
     setting = new QSettings("Pub_copy.ini",QSettings::IniFormat);
     showPathEdit->setText(setting->value("path").toString());
     showPath = setting->value("path").toString();
+    typeCombobox->setCurrentText(setting->value("type").toString());
     setWindowTitle("Pub Copy v0.1a");
 
 
@@ -276,18 +279,21 @@ QStringList MainWindow::searchShotfolder(QString project)
     return shotList;
 }
 
-void MainWindow::projectChange(QString project)
+void MainWindow::projectChange()
 {
     QDir path = showPath;
+    QString project = selectProjectCombobox->currentText();
     path = path.filePath(project);
-    if(path.exists()){
-        shotListView->clear();
-        int queueListRowCount = queueListView->rowCount();
-        for(int i=0;i<queueListRowCount;i++)
-        {
-            queueListView->removeRow(0);
-        }
 
+    shotListView->clear();
+    int queueListRowCount = queueListView->rowCount();
+    for(int i=0;i<queueListRowCount;i++)
+    {
+        queueListView->removeRow(0);
+    }
+
+
+    if(path.exists()){
         QStringList shotList = searchShotfolder(project);
         for(int i =0;i < shotList.size(); i++)
         {
@@ -298,8 +304,9 @@ void MainWindow::projectChange(QString project)
             item->setCheckState(Qt::Unchecked);
             shotListView->addItem(item);
         }
+        statusMessage->setText("Check Shot");
     }
-    statusMessage->setText("Check Shot");
+
 }
 
 void MainWindow::checkShotList(QListWidgetItem *item)
