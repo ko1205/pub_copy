@@ -525,6 +525,18 @@ void MainWindow::removeQueue(QListWidgetItem *item)
 
 int MainWindow::queueFileCount()
 {
+    QString image;
+    QString script;
+    switch (typeCombobox->currentIndex()) {
+    case 0:
+        image = "render/pub/images";
+        script= "render/pub/script";
+        break;
+    case 1:
+        image = "fx/images";
+        script= "fx/precomp";
+        break;
+    }
     int fileCount = 0;
     for(int i =0;i<queueListView->rowCount();i++)
     {
@@ -532,7 +544,7 @@ int MainWindow::queueFileCount()
 
         QTableWidgetItem *imagesItem =  queueListView->item(i,1);
         QDir pathDir = pathItem->data(Qt::DisplayRole).toString();
-        QDir imagesDir = pathDir.filePath("render/pub/images");
+        QDir imagesDir = pathDir.filePath(image);
         imagesDir = imagesDir.filePath(imagesItem->data(Qt::DisplayRole).toString());
 
         if(imagesDir.exists()){
@@ -542,22 +554,24 @@ int MainWindow::queueFileCount()
 //            QMessageBox::information(this,"",fileCountString.setNum(fileCount),QMessageBox::Yes);
 
         }
-        QTableWidgetItem *scriptsItem = queueListView->item(i,2);
-        QDir scriptsPathDir = pathDir.filePath("render/pub/script");
-        QDir scriptsFileDir = scriptsPathDir.filePath(scriptsItem->data(Qt::DisplayRole).toString());
-        QFileInfo scriptFile(scriptsFileDir.absolutePath());
-        if(scriptFile.exists())
-        {
-            fileCount++;
-        }
-        QString movFileName = scriptFile.baseName();
-        movFileName = movFileName + ".mov";
-        QDir movFileDir = scriptsFileDir = scriptsPathDir.filePath(movFileName);
-        QFileInfo movFile(movFileDir.absolutePath());
-        if(movFile.exists())
-        {
-            fileCount++;
-//            QMessageBox::information(this,"",movFileDir.absolutePath(),QMessageBox::Yes);
+        if(allCopy){
+            QTableWidgetItem *scriptsItem = queueListView->item(i,2);
+            QDir scriptsPathDir = pathDir.filePath(script);
+            QDir scriptsFileDir = scriptsPathDir.filePath(scriptsItem->data(Qt::DisplayRole).toString());
+            QFileInfo scriptFile(scriptsFileDir.absolutePath());
+            if(scriptFile.exists())
+            {
+                fileCount++;
+            }
+            QString movFileName = scriptFile.baseName();
+            movFileName = movFileName + ".mov";
+            QDir movFileDir = scriptsFileDir = scriptsPathDir.filePath(movFileName);
+            QFileInfo movFile(movFileDir.absolutePath());
+            if(movFile.exists())
+            {
+                fileCount++;
+    //            QMessageBox::information(this,"",movFileDir.absolutePath(),QMessageBox::Yes);
+            }
         }
 
     }
