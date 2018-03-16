@@ -465,8 +465,8 @@ bool MainWindow::insertQueue(QListWidgetItem *item)
         script= "render/pub/script";
         break;
     case 1:
-        image = "fx/images";
-        script= "fx/precomp";
+        image = "fx/pub/images";
+        script= "fx/pub/precomp";
         break;
     }
 
