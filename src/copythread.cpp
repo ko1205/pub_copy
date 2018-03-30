@@ -45,8 +45,8 @@ int CopyThread::queueFileCount()
         script= "render/pub/script";
         break;
     case 1:
-        image = "fx/images";
-        script= "fx/precomp";
+        image = "fx/pub/images";
+        script= "fx/pub/precomp";
         break;
     }
     int fileCount = 0;
@@ -107,8 +107,8 @@ void CopyThread::fileCopy(QDir *targetDir)
         target= "3D";
         break;
     case 1:
-        image = "fx/images";
-        script= "fx/precomp";
+        image = "fx/pub/images";
+        script= "fx/pub/precomp";
         target= "fx";
         break;
     }
