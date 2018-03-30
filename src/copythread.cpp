@@ -1,6 +1,7 @@
 #include "copythread.h"
 #include <QMessageBox>
 #include "common.h"
+#include <QDate>
 
 CopyThread::CopyThread(QObject *parent)
     :QThread(parent)
@@ -138,8 +139,14 @@ void CopyThread::fileCopy(QDir *targetDir)
         fullTargetDir.mkdir("script");
         fullTargetDir.cd("images");
         if(imagesDir.exists()){
+            QString dateStr="";
 
-            subCopy(imagesDir.absolutePath(),fullTargetDir.absolutePath(),progressBar);
+            if(typeCombobox->currentData(Qt::DisplayRole).toString()=="FX"){
+                 dateStr = QDate::currentDate().toString("yyMMdd");
+                 fullTargetDir.mkdir(dateStr);
+                 dateStr = "/"+dateStr;
+            }
+            subCopy(imagesDir.absolutePath(),fullTargetDir.absolutePath()+dateStr,progressBar);
         }
 
 

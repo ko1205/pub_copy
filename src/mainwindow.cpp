@@ -166,7 +166,7 @@ void MainWindow::createCentralWidget()
     showPathEdit->setText(setting->value("path").toString());
     showPath = setting->value("path").toString();
     typeCombobox->setCurrentText(setting->value("type").toString());
-    setWindowTitle("Pub Copy v1.0 Bata");
+    setWindowTitle("Pub Copy v1.1 Beta");
 
 
 }
